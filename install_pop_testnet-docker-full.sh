@@ -212,6 +212,9 @@ get_user_input() {
     read -p "Enter your Telegram username: " TELEGRAM
     read -p "Enter your Solana wallet address: " SOLANA
     read -p "Enter your POP_INVITE_CODE: " INVITE_CODE
+    
+    # Clean invite code from any JSON formatting
+    INVITE_CODE=$(echo "$INVITE_CODE" | sed 's/.*"\([^"]*\)".*/\1/' | tr -d ' ,"')
 }
 
 # ─── CREATE CONFIG ────────────────────────────────────────────────────────
