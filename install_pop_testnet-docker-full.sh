@@ -353,6 +353,20 @@ case "${1:-install}" in
         ;;
     "restore")
         if [[ -z "$2" ]]; then
+            # Try to find latest backup in home directory
+            LATEST_BACKUP=$(ls -t ~/popnode_backup_*.tar.gz 2>/dev/null | head -1)
+            if [[ -n "$LATEST_BACKUP" ]]; then
+                echo -e "${GREEN}📦 Found backup: $LATEST_BACKUP${NC}"
+                read -p "Use this backup? (y/n): " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    check_prerequisites
+                    check_ports
+                    apply_system_tuning
+                    restore_from_backup "$LATEST_BACKUP"
+                    exit 0
+                fi
+            fi
             echo -e "${RED}❌ Please provide backup file path${NC}"
             echo -e "${BLUE}Usage: $0 restore /path/to/backup.tar.gz${NC}"
             exit 1
