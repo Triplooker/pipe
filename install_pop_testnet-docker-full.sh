@@ -10,6 +10,33 @@ NC='\033[0m' # No Color
 BACKUP_DIR="/tmp/popnode_backup"
 BACKUP_ARCHIVE="/tmp/popnode_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
 
+# ─── RANDOM NAME GENERATORS ────────────────────────────────────────────────
+generate_pop_name() {
+    local prefixes=("Network" "Node" "Cache" "Hub" "Core" "Link" "Bridge" "Gate" "Mesh" "Stream")
+    local suffixes=("Hub" "Node" "Point" "Link" "Core" "Net" "Cache" "Gate" "Mesh" "Pro")
+    local prefix=${prefixes[$RANDOM % ${#prefixes[@]}]}
+    local suffix=${suffixes[$RANDOM % ${#suffixes[@]}]}
+    local number=$((RANDOM % 9999 + 1))
+    echo "${prefix}${suffix}${number}"
+}
+
+generate_node_name() {
+    local adjectives=("Fast" "Secure" "Reliable" "Swift" "Strong" "Smart" "Quick" "Solid" "Stable" "Prime")
+    local nouns=("Node" "Server" "Cache" "Hub" "Core" "Point" "Link" "Gate" "Mesh" "Net")
+    local adjective=${adjectives[$RANDOM % ${#adjectives[@]}]}
+    local noun=${nouns[$RANDOM % ${#nouns[@]}]}
+    local number=$((RANDOM % 999 + 1))
+    echo "${adjective}${noun}${number}"
+}
+
+generate_user_name() {
+    local first_names=("Alex" "Jordan" "Taylor" "Morgan" "Casey" "Riley" "Avery" "Blake" "Cameron" "Dakota")
+    local last_names=("Smith" "Johnson" "Williams" "Brown" "Jones" "Garcia" "Miller" "Davis" "Rodriguez" "Martinez")
+    local first=${first_names[$RANDOM % ${#first_names[@]}]}
+    local last=${last_names[$RANDOM % ${#last_names[@]}]}
+    echo "${first} ${last}"
+}
+
 # ─── USAGE FUNCTION ────────────────────────────────────────────────────────
 show_usage() {
     echo -e "${BLUE}Usage:${NC}"
@@ -194,19 +221,26 @@ EOF
 # ─── USER INPUT ───────────────────────────────────────────────────────────
 get_user_input() {
     echo -e "${ORANGE}🧩 Let's configure your PoP Node...${NC}"
-    read -p "Enter your POP name: " POP_NAME
+    
+    # Auto-generate names
+    POP_NAME=$(generate_pop_name)
+    NODE_NAME=$(generate_node_name)
+    NAME=$(generate_user_name)
+    
+    echo -e "${GREEN}🎲 Auto-generated POP name: $POP_NAME${NC}"
+    echo -e "${GREEN}🎲 Auto-generated node name: $NODE_NAME${NC}"
+    echo -e "${GREEN}🎲 Auto-generated user name: $NAME${NC}"
 
     LOCATION=$(curl -s https://ipinfo.io/json | jq -r '.region + ", " + .country')
     echo -e "${ORANGE}🌍 Auto-detected location: $LOCATION${NC}"
 
-    read -p "Enter memory cache size in MB (Default: 4096Mb Just click Enter): " MEMORY_MB
-    MEMORY_MB=${MEMORY_MB:-4096}
-    DISK_FREE=$(df -h / | awk 'NR==2{print $4}')
-    read -p "Enter disk cache size in GB [Default: 100Gb Just click Enter] (Free on server: $DISK_FREE): " DISK_GB
-    DISK_GB=${DISK_GB:-100}
+    # Set default cache sizes automatically
+    MEMORY_MB=4096
+    DISK_GB=100
+    echo -e "${GREEN}💾 Auto-set memory cache: ${MEMORY_MB}MB${NC}"
+    echo -e "${GREEN}💿 Auto-set disk cache: ${DISK_GB}GB${NC}"
 
-    read -p "Enter your node name (EN): " NODE_NAME
-    read -p "Enter your name (EN): " NAME
+    # Only ask for required information
     read -p "Enter your email: " EMAIL
     read -p "Enter your Discord username: " DISCORD
     read -p "Enter your Telegram username: " TELEGRAM
@@ -215,6 +249,20 @@ get_user_input() {
     
     # Clean invite code from any JSON formatting
     INVITE_CODE=$(echo "$INVITE_CODE" | sed 's/.*"\([^"]*\)".*/\1/' | tr -d ' ,"')
+    
+    echo ""
+    echo -e "${BLUE}📋 Configuration Summary:${NC}"
+    echo -e "${ORANGE}   POP Name: $POP_NAME${NC}"
+    echo -e "${ORANGE}   Node Name: $NODE_NAME${NC}"
+    echo -e "${ORANGE}   User Name: $NAME${NC}"
+    echo -e "${ORANGE}   Location: $LOCATION${NC}"
+    echo -e "${ORANGE}   Memory Cache: ${MEMORY_MB}MB${NC}"
+    echo -e "${ORANGE}   Disk Cache: ${DISK_GB}GB${NC}"
+    echo -e "${ORANGE}   Email: $EMAIL${NC}"
+    echo -e "${ORANGE}   Discord: $DISCORD${NC}"
+    echo -e "${ORANGE}   Telegram: $TELEGRAM${NC}"
+    echo -e "${ORANGE}   Solana: $SOLANA${NC}"
+    echo ""
 }
 
 # ─── CREATE CONFIG ────────────────────────────────────────────────────────
